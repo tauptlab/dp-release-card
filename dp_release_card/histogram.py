@@ -149,6 +149,8 @@ def validate_discrete_laplace_params(*, epsilon: float, sensitivity: float) -> N
 
 
 def postprocess_histogram_count(value: int) -> int:
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise ReleaseCardError("histogram count must be an integer")
     return max(0, value)
 
 

@@ -5,6 +5,7 @@ from dp_release_card.histogram import (
     HISTOGRAM_SENSITIVITY,
     dense_histogram,
     parse_float_list,
+    postprocess_histogram_count,
     release_histogram,
     sample_discrete_laplace,
     validate_discrete_laplace_params,
@@ -87,6 +88,17 @@ def test_release_histogram_clamps_negative_noisy_counts() -> None:
 
     assert release["values"] == [0, 0]
     assert any("clamped to zero" in warning for warning in release["warnings"])
+
+
+def test_postprocess_histogram_count_clamps_negative_integers() -> None:
+    assert postprocess_histogram_count(-3) == 0
+    assert postprocess_histogram_count(2) == 2
+
+
+@pytest.mark.parametrize("value", [True, 1.5, "3", None])
+def test_postprocess_histogram_count_rejects_non_integer_values(value) -> None:
+    with pytest.raises(ReleaseCardError, match="histogram count"):
+        postprocess_histogram_count(value)
 
 
 def test_release_histogram_accepts_integer_valued_float_noise() -> None:
