@@ -25,28 +25,35 @@ def read_numeric_column(path: str | Path, column: str) -> list[float]:
     values: list[float] = []
     try:
         with path.open("r", newline="", encoding="utf-8-sig") as f:
-            reader = csv.DictReader(f)
-            if reader.fieldnames is None:
+            reader = csv.reader(f)
+            try:
+                fieldnames = next(reader)
+            except StopIteration as exc:
+                raise ReleaseCardError("input CSV is missing a header row") from exc
+            if not fieldnames:
                 raise ReleaseCardError("input CSV is missing a header row")
-            if any(field is None or field.strip() == "" for field in reader.fieldnames):
+            if any(field is None or field.strip() == "" for field in fieldnames):
                 raise ReleaseCardError("input CSV has a blank header name")
-            duplicate_headers = _duplicate_items(reader.fieldnames)
+            duplicate_headers = _duplicate_items(fieldnames)
             if duplicate_headers:
                 names = ", ".join(repr(name) for name in duplicate_headers)
                 raise ReleaseCardError(f"input CSV has duplicate header names: {names}")
-            if column not in reader.fieldnames:
-                available = ", ".join(reader.fieldnames)
+            if column not in fieldnames:
+                available = ", ".join(fieldnames)
                 raise ReleaseCardError(
                     f"column {column!r} not found; available columns: {available}"
                 )
+            column_index = fieldnames.index(column)
 
             for row_index, row in enumerate(reader, start=2):
-                if None in row:
+                if not row:
+                    raise ReleaseCardError(f"row {row_index}: blank row")
+                if len(row) > len(fieldnames):
                     raise ReleaseCardError(f"row {row_index}: too many fields")
-                if any(value is None for value in row.values()):
+                if len(row) < len(fieldnames):
                     raise ReleaseCardError(f"row {row_index}: too few fields")
-                raw = row.get(column, "")
-                if raw is None or raw.strip() == "":
+                raw = row[column_index]
+                if raw.strip() == "":
                     raise ReleaseCardError(f"row {row_index}: column {column!r} is blank")
                 try:
                     value = float(raw)

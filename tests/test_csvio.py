@@ -98,6 +98,14 @@ def test_read_numeric_column_rejects_missing_fields(tmp_path: Path) -> None:
         read_numeric_column(path, "age")
 
 
+def test_read_numeric_column_rejects_blank_row(tmp_path: Path) -> None:
+    path = tmp_path / "data.csv"
+    path.write_text("age\n10\n\n20\n", encoding="utf-8")
+
+    with pytest.raises(ReleaseCardError, match="blank row"):
+        read_numeric_column(path, "age")
+
+
 def test_read_numeric_column_rejects_blank(tmp_path: Path) -> None:
     path = tmp_path / "data.csv"
     path.write_text("age,name\n10,a\n,b\n", encoding="utf-8")

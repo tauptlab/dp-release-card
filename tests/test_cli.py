@@ -1127,6 +1127,48 @@ def test_cli_rejects_csv_missing_fields_without_outputs(
     assert not card_path.exists()
 
 
+def test_cli_rejects_csv_blank_row_without_outputs(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    monkeypatch.setenv("DP_RELEASE_CARD_SECRET", "test-secret")
+    csv_path = tmp_path / "ages.csv"
+    release_path = tmp_path / "release.json"
+    receipt_path = tmp_path / "receipt.json"
+    card_path = tmp_path / "release-card.md"
+    csv_path.write_text("age\n10\n\n20\n", encoding="utf-8")
+
+    code = main(
+        [
+            "histogram",
+            str(csv_path),
+            "--column",
+            "age",
+            "--epsilon",
+            "1",
+            "--bounds",
+            "0,100",
+            "--bins",
+            "0,50,100",
+            "--strict",
+            "--out",
+            str(release_path),
+            "--receipt",
+            str(receipt_path),
+            "--card",
+            str(card_path),
+            "--signing-key-env",
+            "DP_RELEASE_CARD_SECRET",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert code == 1
+    assert "blank row" in captured.err
+    assert not release_path.exists()
+    assert not receipt_path.exists()
+    assert not card_path.exists()
+
+
 def test_cli_rejects_directory_input_without_outputs(
     tmp_path: Path, monkeypatch, capsys
 ) -> None:
