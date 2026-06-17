@@ -25,6 +25,7 @@ def sample_receipt(*, release=None, **overrides) -> dict:
     receipt = {
         "version": "dp-release-card.receipt.v1",
         "tool_version": "0.1.0",
+        "created_at": "2026-06-17T00:00:00Z",
         "release_digest": release_digest(release),
         "public_policy": {
             "query_type": "histogram",
@@ -90,6 +91,17 @@ def test_release_card_escapes_markdown_table_cells() -> None:
         ({}, sample_receipt(), "release query_type"),
         (sample_release(), {}, "receipt version"),
         (sample_release(), sample_receipt(signature={}), "signature algorithm"),
+        (sample_release(), sample_receipt(raw_rows=[10]), "unknown field"),
+        (
+            sample_release(),
+            sample_receipt(signature={**sample_receipt()["signature"], "secret": "leak"}),
+            "unknown field",
+        ),
+        (
+            sample_release(),
+            {k: v for k, v in sample_receipt().items() if k != "created_at"},
+            "created_at",
+        ),
         (
             sample_release(epsilon_spent=2.0),
             sample_receipt(),
