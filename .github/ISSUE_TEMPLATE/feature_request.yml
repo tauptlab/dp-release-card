@@ -1,0 +1,46 @@
+name: Feature request
+description: Suggest an improvement that stays inside the public-slice boundary.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Feature requests are welcome when they preserve the narrow public scope:
+        CSV histogram releases, public policy metadata, signed receipts, and
+        release cards.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should change?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - CLI
+        - JSON artifacts
+        - schemas
+        - examples
+        - documentation
+        - packaging
+        - tests
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Boundary check
+      options:
+        - label: This does not require AutoBound, AC-PQ, fairness calibration, internal planners/routers, benchmark maps, or service workflow code.
+          required: true

@@ -9,8 +9,10 @@ internals.
 ## Local Setup
 
 ```bash
-python -m pip install -e ".[test]"
+python -m pip install -e ".[dev]"
 python -m pytest -q
+python -m build --sdist --wheel
+python -m twine check dist/*
 ```
 
 ## Contribution Guidelines
@@ -28,6 +30,7 @@ python -m pytest -q
 ## Pull Request Checklist
 
 - [ ] Tests pass with `python -m pytest -q`.
+- [ ] Distribution artifacts pass `python -m twine check dist/*` when packaging changes.
 - [ ] Public artifact fields are documented.
 - [ ] New output files do not expose private data.
 - [ ] README examples still match the CLI.

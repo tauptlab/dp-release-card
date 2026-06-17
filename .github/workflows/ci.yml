@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -18,3 +21,22 @@ jobs:
       - run: python -m pip install --upgrade pip
       - run: python -m pip install -e ".[test]"
       - run: python -m pytest -q
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ".[dev]"
+      - run: python -m build --sdist --wheel
+      - run: python -m twine check dist/*
+      - run: |
+          tar -tzf dist/dp_release_card-*.tar.gz > sdist-files.txt
+          grep -q "/docs/schema.md$" sdist-files.txt
+          grep -q "/docs/positioning.md$" sdist-files.txt
+          grep -q "/examples/outputs/release.json$" sdist-files.txt
+          grep -q "/schema/release.schema.json$" sdist-files.txt
+          grep -q "/CHANGELOG.md$" sdist-files.txt

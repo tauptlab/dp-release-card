@@ -15,3 +15,4 @@ before 1.0, but changes should be explicit and tested.
 - Added strict input, JSON, schema, and output-path validation.
 - Added CI on Python 3.10, 3.11, and 3.12.
 - Added public artifact schemas and committed example outputs.
+- Added packaging checks, issue templates, PR template, release checklist, and roadmap.

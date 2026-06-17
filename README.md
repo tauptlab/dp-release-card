@@ -264,6 +264,8 @@ Project docs:
 - [SECURITY.md](SECURITY.md)
 - [docs/schema.md](docs/schema.md)
 - [docs/positioning.md](docs/positioning.md)
+- [docs/release.md](docs/release.md)
+- [docs/roadmap.md](docs/roadmap.md)
 
 ## Project Status
 
