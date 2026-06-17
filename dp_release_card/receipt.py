@@ -321,7 +321,11 @@ def load_json(path: str | Path) -> dict:
     path = Path(path)
     try:
         with path.open("r", encoding="utf-8") as f:
-            value = json.load(f, object_pairs_hook=_reject_duplicate_object_pairs)
+            value = json.load(
+                f,
+                object_pairs_hook=_reject_duplicate_object_pairs,
+                parse_constant=_reject_json_constant,
+            )
     except OSError as exc:
         raise ReleaseCardError(f"cannot read JSON: {path}: {exc}") from exc
     except UnicodeError as exc:
@@ -340,6 +344,10 @@ def _reject_duplicate_object_pairs(pairs: list[tuple[str, Any]]) -> dict:
             raise ReleaseCardError(f"JSON object contains duplicate key: {key!r}")
         out[key] = value
     return out
+
+
+def _reject_json_constant(value: str) -> None:
+    raise ReleaseCardError(f"JSON contains non-standard numeric constant: {value}")
 
 
 def write_json(path: str | Path, value: dict) -> None:

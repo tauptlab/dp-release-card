@@ -410,6 +410,21 @@ def test_cli_verify_rejects_duplicate_json_key_without_traceback(
     assert "Traceback" not in captured.err
 
 
+def test_cli_verify_rejects_non_standard_json_without_traceback(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    monkeypatch.setenv("DP_RELEASE_CARD_SECRET", "test-secret")
+    receipt_path = tmp_path / "receipt.json"
+    receipt_path.write_text('{"version": NaN}', encoding="utf-8")
+
+    code = main(["verify", str(receipt_path), "--signing-key-env", "DP_RELEASE_CARD_SECRET"])
+
+    captured = capsys.readouterr()
+    assert code == 1
+    assert "non-standard numeric constant" in captured.err
+    assert "Traceback" not in captured.err
+
+
 def test_cli_verify_signed_malformed_receipt_without_traceback(
     tmp_path: Path, monkeypatch, capsys
 ) -> None:

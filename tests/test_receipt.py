@@ -262,6 +262,15 @@ def test_load_json_rejects_duplicate_keys(tmp_path) -> None:
         load_json(path)
 
 
+@pytest.mark.parametrize("constant", ["NaN", "Infinity", "-Infinity"])
+def test_load_json_rejects_non_standard_numeric_constants(tmp_path, constant: str) -> None:
+    path = tmp_path / "receipt.json"
+    path.write_text(f'{{"value": {constant}}}', encoding="utf-8")
+
+    with pytest.raises(ReleaseCardError, match="non-standard numeric constant"):
+        load_json(path)
+
+
 @pytest.mark.parametrize("value", [{"x": float("nan")}, {"x": {1, 2}}])
 def test_canonical_json_rejects_non_standard_values(value) -> None:
     with pytest.raises(ReleaseCardError, match="canonical JSON"):
