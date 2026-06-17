@@ -43,6 +43,8 @@ def read_numeric_column(path: str | Path, column: str) -> list[float]:
             for row_index, row in enumerate(reader, start=2):
                 if None in row:
                     raise ReleaseCardError(f"row {row_index}: too many fields")
+                if any(value is None for value in row.values()):
+                    raise ReleaseCardError(f"row {row_index}: too few fields")
                 raw = row.get(column, "")
                 if raw is None or raw.strip() == "":
                     raise ReleaseCardError(f"row {row_index}: column {column!r} is blank")
