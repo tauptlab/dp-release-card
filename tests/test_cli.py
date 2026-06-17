@@ -140,7 +140,7 @@ def test_cli_verify_release_digest_rejects_tampered_release(
         == 0
     )
     release = json.loads(release_path.read_text(encoding="utf-8"))
-    release["values"] = [0 for _ in release["values"]]
+    release["values"] = [value + 1 for value in release["values"]]
     release_path.write_text(json.dumps(release), encoding="utf-8")
 
     code = main(
