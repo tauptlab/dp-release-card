@@ -37,6 +37,12 @@ def test_dense_histogram_rejects_invalid_geometry(bounds, bin_edges) -> None:
         dense_histogram([1], bounds=bounds, bin_edges=bin_edges)
 
 
+@pytest.mark.parametrize("value", [True, "1", None, float("nan"), float("inf")])
+def test_dense_histogram_rejects_invalid_values(value) -> None:
+    with pytest.raises(ReleaseCardError, match="finite numbers"):
+        dense_histogram([value], bounds=(0, 2), bin_edges=[0, 1, 2])
+
+
 def test_release_histogram_public_schema_has_no_raw_fields() -> None:
     release = release_histogram(
         [1, 2, 3, 80],

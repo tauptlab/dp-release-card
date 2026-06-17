@@ -122,8 +122,8 @@ def dense_histogram(
     lo, hi = bounds
     counts = [0 for _ in range(len(bin_edges) - 1)]
     for value in values:
-        if not math.isfinite(value):
-            raise ReleaseCardError("values must be finite")
+        if not _is_finite_number(value):
+            raise ReleaseCardError("values must be finite numbers")
         clamped = min(max(value, lo), hi)
         if clamped == bin_edges[-1]:
             idx = len(counts) - 1
