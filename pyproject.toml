@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dp-release-card"
+version = "0.1.0"
+description = "Generate verifiable differential-privacy release cards for public-policy CSV histogram releases."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "TaupT"}]
+keywords = ["differential-privacy", "privacy", "csv", "histogram", "receipt"]
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+[project.scripts]
+dp-release-card = "dp_release_card.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["dp_release_card*"]
+exclude = ["tests*", "examples*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
