@@ -76,8 +76,10 @@ If your Python environment does not put console scripts on PATH, use
 - `--strict`, which selects the v1 finite-precision `discrete_laplace` path.
 - A signing secret supplied by environment variable name, never directly on the command line.
 
-CSV header names must be unique and non-blank. Rows with extra fields are
-rejected instead of being silently repaired.
+CSV header names must be unique and non-blank. Each data row must have exactly
+the same number of fields as the header row; blank rows, missing fields, and
+extra fields are rejected instead of being silently repaired. The selected
+column must be non-blank, numeric, and finite in every data row.
 
 `bounds` and `bin_edges` are caller-attested public metadata. Deriving them from
 private data is outside this tool's DP contract.

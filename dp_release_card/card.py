@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from .errors import ReleaseCardError
-from .receipt import RECEIPT_VERSION, validate_release_policy_consistency
+from .receipt import RECEIPT_VERSION, verify_release_digest
 
 
 def render_release_card(*, release: dict, receipt: dict) -> str:
@@ -90,7 +90,7 @@ def _validate_card_inputs(*, release: dict, receipt: dict) -> None:
     policy = receipt.get("public_policy")
     if not isinstance(policy, dict):
         raise ReleaseCardError("receipt public_policy must be an object")
-    validate_release_policy_consistency(release, policy)
+    verify_release_digest(release, receipt)
 
 
 def _markdown_table_cell(value: object) -> str:

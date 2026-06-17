@@ -2,6 +2,7 @@ import pytest
 
 from dp_release_card.card import render_release_card
 from dp_release_card.errors import ReleaseCardError
+from dp_release_card.receipt import release_digest
 
 
 def sample_release(**overrides) -> dict:
@@ -19,11 +20,12 @@ def sample_release(**overrides) -> dict:
     return release
 
 
-def sample_receipt(**overrides) -> dict:
+def sample_receipt(*, release=None, **overrides) -> dict:
+    release = release or sample_release()
     receipt = {
         "version": "dp-release-card.receipt.v1",
         "tool_version": "0.1.0",
-        "release_digest": "a" * 64,
+        "release_digest": release_digest(release),
         "public_policy": {
             "query_type": "histogram",
             "n": 2,
@@ -48,7 +50,7 @@ def sample_receipt(**overrides) -> dict:
 
 def test_release_card_shows_public_policy_without_private_fields() -> None:
     release = sample_release()
-    receipt = sample_receipt()
+    receipt = sample_receipt(release=release)
 
     card = render_release_card(release=release, receipt=receipt)
 
@@ -62,6 +64,7 @@ def test_release_card_shows_public_policy_without_private_fields() -> None:
 def test_release_card_escapes_markdown_table_cells() -> None:
     release = sample_release(values=[1], bin_edges_used=[0, 100])
     receipt = sample_receipt(
+        release=release,
         public_policy={
             "query_type": "histogram",
             "n": 1,
@@ -96,4 +99,12 @@ def test_release_card_escapes_markdown_table_cells() -> None:
 )
 def test_release_card_rejects_malformed_inputs(release, receipt, message) -> None:
     with pytest.raises(ReleaseCardError, match=message):
+        render_release_card(release=release, receipt=receipt)
+
+
+def test_release_card_rejects_digest_mismatch() -> None:
+    release = sample_release()
+    receipt = sample_receipt(release=release, release_digest="0" * 64)
+
+    with pytest.raises(ReleaseCardError, match="release digest does not match"):
         render_release_card(release=release, receipt=receipt)
