@@ -222,6 +222,7 @@ def _commit_temp_outputs(
                 try:
                     os.replace(target, backup_path)
                 except OSError as exc:
+                    backup_path.unlink(missing_ok=True)
                     raise ReleaseCardError(
                         f"cannot prepare existing output file: {target}: {exc}"
                     ) from exc

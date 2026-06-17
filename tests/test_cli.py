@@ -874,6 +874,60 @@ def test_cli_rolls_back_existing_outputs_when_replace_fails(
     assert list(tmp_path.glob(".*.tmp")) == []
 
 
+def test_cli_cleans_temp_file_when_backup_prepare_fails(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    monkeypatch.setenv("DP_RELEASE_CARD_SECRET", "test-secret")
+    csv_path = tmp_path / "ages.csv"
+    release_path = tmp_path / "release.json"
+    receipt_path = tmp_path / "receipt.json"
+    card_path = tmp_path / "release-card.md"
+    csv_path.write_text("age\n10\n20\n", encoding="utf-8")
+    release_path.write_text("old-release", encoding="utf-8")
+    receipt_path.write_text("old-receipt", encoding="utf-8")
+    card_path.write_text("old-card", encoding="utf-8")
+    original_replace = os.replace
+
+    def fail_release_backup_prepare(src, dst):
+        if Path(src) == release_path and Path(dst).name.startswith(".release.json."):
+            raise OSError("simulated prepare failure")
+        return original_replace(src, dst)
+
+    monkeypatch.setattr("dp_release_card.cli.os.replace", fail_release_backup_prepare)
+
+    code = main(
+        [
+            "histogram",
+            str(csv_path),
+            "--column",
+            "age",
+            "--epsilon",
+            "1",
+            "--bounds",
+            "0,100",
+            "--bins",
+            "0,50,100",
+            "--strict",
+            "--out",
+            str(release_path),
+            "--receipt",
+            str(receipt_path),
+            "--card",
+            str(card_path),
+            "--signing-key-env",
+            "DP_RELEASE_CARD_SECRET",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert code == 1
+    assert "cannot prepare existing output file" in captured.err
+    assert release_path.read_text(encoding="utf-8") == "old-release"
+    assert receipt_path.read_text(encoding="utf-8") == "old-receipt"
+    assert card_path.read_text(encoding="utf-8") == "old-card"
+    assert list(tmp_path.glob(".*.tmp")) == []
+
+
 def test_cli_rejects_output_under_file_path_before_partial_write(
     tmp_path: Path, monkeypatch, capsys
 ) -> None:
