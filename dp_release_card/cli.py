@@ -31,8 +31,8 @@ DASH_VALUE_OPTIONS = {"--bounds", "--bins"}
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     parse_argv = sys.argv[1:] if argv is None else argv
-    args = parser.parse_args(_normalize_dash_value_options(parse_argv))
     try:
+        args = parser.parse_args(_normalize_dash_value_options(parse_argv))
         if args.command == "histogram":
             return _cmd_histogram(args)
         if args.command == "verify":
@@ -41,6 +41,8 @@ def main(argv: list[str] | None = None) -> int:
     except ReleaseCardError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
+    except SystemExit as exc:
+        return _system_exit_code(exc)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -94,6 +96,14 @@ def _normalize_dash_value_options(argv: list[str]) -> list[str]:
         normalized.append(item)
         index += 1
     return normalized
+
+
+def _system_exit_code(exc: SystemExit) -> int:
+    if isinstance(exc.code, int):
+        return exc.code
+    if exc.code is None:
+        return 0
+    return 1
 
 
 def _cmd_histogram(args: argparse.Namespace) -> int:

@@ -10,6 +10,33 @@ from dp_release_card.cli import main
 from dp_release_card.receipt import canonical_json_bytes
 
 
+def test_cli_main_returns_usage_error_without_raising(capsys) -> None:
+    code = main([])
+
+    captured = capsys.readouterr()
+    assert code == 2
+    assert "missing command" in captured.err
+    assert "Traceback" not in captured.err
+
+
+def test_cli_main_returns_required_argument_error_without_raising(capsys) -> None:
+    code = main(["verify", "receipt.json"])
+
+    captured = capsys.readouterr()
+    assert code == 2
+    assert "--signing-key-env" in captured.err
+    assert "Traceback" not in captured.err
+
+
+def test_cli_main_returns_success_for_help(capsys) -> None:
+    code = main(["--help"])
+
+    captured = capsys.readouterr()
+    assert code == 0
+    assert "Generate verifiable DP release cards" in captured.out
+    assert captured.err == ""
+
+
 def test_cli_histogram_and_verify(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("DP_RELEASE_CARD_SECRET", "test-secret")
     csv_path = tmp_path / "ages.csv"
