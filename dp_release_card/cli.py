@@ -193,19 +193,57 @@ def _write_outputs_atomically(
         (card_path, lambda path: write_card(path, release=release, receipt=receipt)),
     ]
     temp_records: list[tuple[Path, Path]] = []
+    backup_records: list[tuple[Path, Path | None]] = []
+    committed = False
     try:
         for target, writer in writers:
             temp_path = _make_temp_output_path(target)
             temp_records.append((temp_path, target))
             writer(temp_path)
+        _commit_temp_outputs(temp_records, backup_records)
+        committed = True
+    finally:
+        for temp_path, _target in temp_records:
+            temp_path.unlink(missing_ok=True)
+        for _target, backup_path in backup_records:
+            if committed and backup_path is not None and backup_path.exists():
+                backup_path.unlink(missing_ok=True)
+
+
+def _commit_temp_outputs(
+    temp_records: list[tuple[Path, Path]],
+    backup_records: list[tuple[Path, Path | None]],
+) -> None:
+    try:
         for temp_path, target in temp_records:
+            backup_path: Path | None = None
+            if target.exists():
+                backup_path = _make_temp_output_path(target)
+                try:
+                    os.replace(target, backup_path)
+                except OSError as exc:
+                    raise ReleaseCardError(
+                        f"cannot prepare existing output file: {target}: {exc}"
+                    ) from exc
+            backup_records.append((target, backup_path))
             try:
                 os.replace(temp_path, target)
             except OSError as exc:
                 raise ReleaseCardError(f"cannot replace output file: {target}: {exc}") from exc
-    finally:
-        for temp_path, _target in temp_records:
-            temp_path.unlink(missing_ok=True)
+    except ReleaseCardError:
+        _rollback_output_replacements(backup_records)
+        raise
+
+
+def _rollback_output_replacements(backup_records: list[tuple[Path, Path | None]]) -> None:
+    for target, backup_path in reversed(backup_records):
+        try:
+            if backup_path is None:
+                target.unlink(missing_ok=True)
+            elif backup_path.exists():
+                os.replace(backup_path, target)
+        except OSError:
+            pass
 
 
 def _make_temp_output_path(target: Path) -> Path:
