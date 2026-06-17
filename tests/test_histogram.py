@@ -4,6 +4,7 @@ from dp_release_card.errors import ReleaseCardError
 from dp_release_card.histogram import (
     HISTOGRAM_SENSITIVITY,
     dense_histogram,
+    parse_float_list,
     release_histogram,
     sample_discrete_laplace,
     validate_discrete_laplace_params,
@@ -41,6 +42,12 @@ def test_dense_histogram_rejects_invalid_geometry(bounds, bin_edges) -> None:
 def test_dense_histogram_rejects_invalid_values(value) -> None:
     with pytest.raises(ReleaseCardError, match="finite numbers"):
         dense_histogram([value], bounds=(0, 2), bin_edges=[0, 1, 2])
+
+
+@pytest.mark.parametrize("raw", [None, 123, ["0", "1"]])
+def test_parse_float_list_rejects_non_string_inputs(raw) -> None:
+    with pytest.raises(ReleaseCardError, match="bounds is required"):
+        parse_float_list(raw, name="bounds")
 
 
 def test_release_histogram_public_schema_has_no_raw_fields() -> None:
@@ -117,6 +124,8 @@ def test_release_histogram_rejects_invalid_noise_fn_output(noise) -> None:
         ({"epsilon": 1, "bounds": (0, 1), "bin_edges": [0, 0.5, 0.5], "strict": True}, "bins"),
         ({"epsilon": 1, "bounds": (0, 1), "bin_edges": [0, 2], "strict": True}, "bounds"),
         ({"epsilon": 1, "bounds": (0, 1), "bin_edges": [0, 1], "strict": False}, "strict"),
+        ({"epsilon": 1, "bounds": (0, 1), "bin_edges": [0, 1], "strict": 1}, "strict"),
+        ({"epsilon": 1, "bounds": (0, 1), "bin_edges": [0, 1], "strict": "yes"}, "strict"),
         ({"epsilon": True, "bounds": (0, 1), "bin_edges": [0, 1], "strict": True}, "epsilon"),
     ],
 )

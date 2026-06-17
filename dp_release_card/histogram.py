@@ -13,7 +13,7 @@ QUERY_TYPE = "histogram"
 
 
 def parse_float_list(raw: str, *, name: str) -> list[float]:
-    if raw is None or raw.strip() == "":
+    if not isinstance(raw, str) or raw.strip() == "":
         raise ReleaseCardError(f"{name} is required")
     out: list[float] = []
     for part in raw.split(","):
@@ -39,7 +39,7 @@ def validate_histogram_policy(
 ) -> None:
     if not _is_finite_number(epsilon) or epsilon <= 0:
         raise ReleaseCardError(f"epsilon must be positive finite, got {epsilon!r}")
-    if not strict:
+    if strict is not True:
         raise ReleaseCardError("v1 only supports --strict discrete_laplace releases")
 
     validate_histogram_geometry(bounds=bounds, bin_edges=bin_edges)
