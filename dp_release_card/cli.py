@@ -3,7 +3,9 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+import tempfile
 from pathlib import Path
+from typing import Callable
 
 from .card import write_card
 from .csvio import read_numeric_column
@@ -152,9 +154,13 @@ def _cmd_histogram(args: argparse.Namespace) -> int:
         signing_key_env=args.signing_key_env,
     )
 
-    write_json(Path(args.out), release)
-    write_json(Path(args.receipt), receipt)
-    write_card(Path(args.card), release=release, receipt=receipt)
+    _write_outputs_atomically(
+        out_path=Path(args.out),
+        receipt_path=Path(args.receipt),
+        card_path=Path(args.card),
+        release=release,
+        receipt=receipt,
+    )
     print(f"wrote release: {args.out}")
     print(f"wrote receipt: {args.receipt}")
     print(f"wrote card: {args.card}")
@@ -171,6 +177,51 @@ def _cmd_verify(args: argparse.Namespace) -> int:
     else:
         print(f"receipt verified: {receipt['release_digest']}")
     return 0
+
+
+def _write_outputs_atomically(
+    *,
+    out_path: Path,
+    receipt_path: Path,
+    card_path: Path,
+    release: dict,
+    receipt: dict,
+) -> None:
+    writers: list[tuple[Path, Callable[[Path], None]]] = [
+        (out_path, lambda path: write_json(path, release)),
+        (receipt_path, lambda path: write_json(path, receipt)),
+        (card_path, lambda path: write_card(path, release=release, receipt=receipt)),
+    ]
+    temp_records: list[tuple[Path, Path]] = []
+    try:
+        for target, writer in writers:
+            temp_path = _make_temp_output_path(target)
+            temp_records.append((temp_path, target))
+            writer(temp_path)
+        for temp_path, target in temp_records:
+            try:
+                os.replace(temp_path, target)
+            except OSError as exc:
+                raise ReleaseCardError(f"cannot replace output file: {target}: {exc}") from exc
+    finally:
+        for temp_path, _target in temp_records:
+            temp_path.unlink(missing_ok=True)
+
+
+def _make_temp_output_path(target: Path) -> Path:
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            dir=target.parent,
+            prefix=f".{target.name}.",
+            suffix=".tmp",
+        ) as temp_file:
+            return Path(temp_file.name)
+    except OSError as exc:
+        raise ReleaseCardError(
+            f"cannot create temporary output file for {target}: {exc}"
+        ) from exc
 
 
 def _normalize_path(path: str) -> str:

@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 from dp_release_card.cli import main
+from dp_release_card.errors import ReleaseCardError
 from dp_release_card.receipt import canonical_json_bytes
 
 
@@ -763,6 +764,57 @@ def test_cli_rejects_read_only_output_before_partial_write(
     assert not release_path.exists()
     assert receipt_path.read_text(encoding="utf-8") == "locked"
     assert not card_path.exists()
+
+
+def test_cli_preserves_existing_outputs_when_card_write_fails(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    monkeypatch.setenv("DP_RELEASE_CARD_SECRET", "test-secret")
+    csv_path = tmp_path / "ages.csv"
+    release_path = tmp_path / "release.json"
+    receipt_path = tmp_path / "receipt.json"
+    card_path = tmp_path / "release-card.md"
+    csv_path.write_text("age\n10\n20\n", encoding="utf-8")
+    release_path.write_text("old-release", encoding="utf-8")
+    receipt_path.write_text("old-receipt", encoding="utf-8")
+    card_path.write_text("old-card", encoding="utf-8")
+
+    def fail_card(*args, **kwargs):
+        raise ReleaseCardError("simulated card write failure")
+
+    monkeypatch.setattr("dp_release_card.cli.write_card", fail_card)
+
+    code = main(
+        [
+            "histogram",
+            str(csv_path),
+            "--column",
+            "age",
+            "--epsilon",
+            "1",
+            "--bounds",
+            "0,100",
+            "--bins",
+            "0,50,100",
+            "--strict",
+            "--out",
+            str(release_path),
+            "--receipt",
+            str(receipt_path),
+            "--card",
+            str(card_path),
+            "--signing-key-env",
+            "DP_RELEASE_CARD_SECRET",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert code == 1
+    assert "simulated card write failure" in captured.err
+    assert release_path.read_text(encoding="utf-8") == "old-release"
+    assert receipt_path.read_text(encoding="utf-8") == "old-receipt"
+    assert card_path.read_text(encoding="utf-8") == "old-card"
+    assert list(tmp_path.glob(".*.tmp")) == []
 
 
 def test_cli_rejects_output_under_file_path_before_partial_write(
