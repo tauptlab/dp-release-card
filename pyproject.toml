@@ -11,7 +11,26 @@ requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [{name = "TaupT"}]
 keywords = ["differential-privacy", "privacy", "csv", "histogram", "receipt"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Security",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+]
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/tauptlab/dp-release-card"
+Repository = "https://github.com/tauptlab/dp-release-card"
+Issues = "https://github.com/tauptlab/dp-release-card/issues"
+Changelog = "https://github.com/tauptlab/dp-release-card/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/tauptlab/dp-release-card#readme"
 
 [project.optional-dependencies]
 test = ["pytest>=7.0"]

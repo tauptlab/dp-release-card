@@ -1,0 +1,27 @@
+{
+  "bin_edges_used": [
+    0.0,
+    20.0,
+    40.0,
+    60.0,
+    80.0,
+    100.0
+  ],
+  "epsilon_spent": 1.0,
+  "mechanism": "discrete_laplace",
+  "proof_scope": "strict_finite_precision",
+  "query_type": "histogram",
+  "sensitivity": 2.0,
+  "values": [
+    2,
+    3,
+    4,
+    2,
+    1
+  ],
+  "warnings": [
+    "bounds and bin_edges are caller-attested public metadata; deriving them from private data is outside this tool's DP contract",
+    "negative noisy bin counts are clamped to zero by public post-processing; this costs no additional privacy budget but can add bias",
+    "production TaupT routing, AutoBound, fairness calibration, and service workflow are not included"
+  ]
+}

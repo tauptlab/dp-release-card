@@ -20,3 +20,8 @@ receipt.json
 release-card.md
 
 !examples/*.csv
+!examples/outputs/
+!examples/outputs/*.json
+!examples/outputs/*.md
+!schema/
+!schema/*.json

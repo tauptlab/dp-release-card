@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tauptlab/dp-release-card/schema/release.schema.json",
+  "title": "dp-release-card release v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "query_type",
+    "values",
+    "bin_edges_used",
+    "epsilon_spent",
+    "mechanism",
+    "sensitivity",
+    "proof_scope",
+    "warnings"
+  ],
+  "properties": {
+    "query_type": {
+      "const": "histogram"
+    },
+    "values": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "bin_edges_used": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "number"
+      }
+    },
+    "epsilon_spent": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "mechanism": {
+      "const": "discrete_laplace"
+    },
+    "sensitivity": {
+      "const": 2.0
+    },
+    "proof_scope": {
+      "const": "strict_finite_precision"
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

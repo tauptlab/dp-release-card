@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tauptlab/dp-release-card/schema/receipt.schema.json",
+  "title": "dp-release-card receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "tool_version",
+    "created_at",
+    "release_digest",
+    "public_policy",
+    "signature"
+  ],
+  "properties": {
+    "version": {
+      "const": "dp-release-card.receipt.v1"
+    },
+    "tool_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "release_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$"
+    },
+    "public_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "query_type",
+        "n",
+        "column",
+        "epsilon",
+        "bounds",
+        "bin_edges",
+        "mechanism",
+        "sensitivity",
+        "proof_scope",
+        "strict_finite_precision"
+      ],
+      "properties": {
+        "query_type": {
+          "const": "histogram"
+        },
+        "n": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "column": {
+          "type": "string",
+          "minLength": 1
+        },
+        "epsilon": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "bounds": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number"
+          }
+        },
+        "bin_edges": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "number"
+          }
+        },
+        "mechanism": {
+          "const": "discrete_laplace"
+        },
+        "sensitivity": {
+          "const": 2.0
+        },
+        "proof_scope": {
+          "const": "strict_finite_precision"
+        },
+        "strict_finite_precision": {
+          "const": true
+        }
+      }
+    },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "key_env",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "const": "hmac-sha256"
+        },
+        "key_env": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$"
+        }
+      }
+    }
+  }
+}

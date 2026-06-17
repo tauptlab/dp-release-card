@@ -1,0 +1,33 @@
+{
+  "created_at": "2026-01-01T00:00:00Z",
+  "public_policy": {
+    "bin_edges": [
+      0.0,
+      20.0,
+      40.0,
+      60.0,
+      80.0,
+      100.0
+    ],
+    "bounds": [
+      0.0,
+      100.0
+    ],
+    "column": "age",
+    "epsilon": 1.0,
+    "mechanism": "discrete_laplace",
+    "n": 12,
+    "proof_scope": "strict_finite_precision",
+    "query_type": "histogram",
+    "sensitivity": 2.0,
+    "strict_finite_precision": true
+  },
+  "release_digest": "f0d3ab790c42b3a7c2346ff4fd18f0588bf52d0253a33c9a12fe00d3a929bcdd",
+  "signature": {
+    "algorithm": "hmac-sha256",
+    "key_env": "DP_RELEASE_CARD_SECRET",
+    "value": "d6b7c0d7df240dfcae6a72f3208d0289ac3613b412db0aef143c8276fb8b90c2"
+  },
+  "tool_version": "0.1.0",
+  "version": "dp-release-card.receipt.v1"
+}
