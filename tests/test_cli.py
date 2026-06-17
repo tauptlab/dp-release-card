@@ -1,6 +1,9 @@
 import hashlib
 import hmac
 import json
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 from dp_release_card.cli import main
@@ -102,6 +105,116 @@ def test_cli_verify_release_digest(tmp_path: Path, monkeypatch, capsys) -> None:
     captured = capsys.readouterr()
     assert code == 0
     assert "receipt and release verified" in captured.out
+
+
+def test_cli_histogram_accepts_negative_public_bounds_and_creates_output_dirs(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.setenv("DP_RELEASE_CARD_SECRET", "test-secret")
+    csv_path = tmp_path / "ages.csv"
+    output_dir = tmp_path / "nested" / "outputs"
+    release_path = output_dir / "release.json"
+    receipt_path = output_dir / "receipt.json"
+    card_path = output_dir / "release-card.md"
+    csv_path.write_text("age\n-20\n-10\n0\n9.9\n10\n20\n", encoding="utf-8")
+
+    code = main(
+        [
+            "histogram",
+            str(csv_path),
+            "--column",
+            "age",
+            "--epsilon",
+            "1",
+            "--bounds",
+            "-10,10",
+            "--bins",
+            "-10,0,10",
+            "--strict",
+            "--out",
+            str(release_path),
+            "--receipt",
+            str(receipt_path),
+            "--card",
+            str(card_path),
+            "--signing-key-env",
+            "DP_RELEASE_CARD_SECRET",
+        ]
+    )
+
+    assert code == 0
+    assert release_path.exists()
+    assert receipt_path.exists()
+    assert card_path.exists()
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    assert receipt["public_policy"]["bounds"] == [-10.0, 10.0]
+    assert receipt["public_policy"]["bin_edges"] == [-10.0, 0.0, 10.0]
+
+
+def test_python_module_cli_histogram_and_verify(tmp_path: Path) -> None:
+    csv_path = tmp_path / "ages.csv"
+    release_path = tmp_path / "release.json"
+    receipt_path = tmp_path / "receipt.json"
+    card_path = tmp_path / "release-card.md"
+    csv_path.write_text("age\n10\n20\n30\n", encoding="utf-8")
+    env = {
+        **os.environ,
+        "DP_RELEASE_CARD_SECRET": "test-secret",
+    }
+
+    histogram = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "dp_release_card",
+            "histogram",
+            str(csv_path),
+            "--column",
+            "age",
+            "--epsilon",
+            "1",
+            "--bounds",
+            "0,100",
+            "--bins",
+            "0,50,100",
+            "--strict",
+            "--out",
+            str(release_path),
+            "--receipt",
+            str(receipt_path),
+            "--card",
+            str(card_path),
+            "--signing-key-env",
+            "DP_RELEASE_CARD_SECRET",
+        ],
+        env=env,
+        stdin=subprocess.DEVNULL,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert histogram.returncode == 0, histogram.stderr
+
+    verify = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "dp_release_card",
+            "verify",
+            str(receipt_path),
+            "--release",
+            str(release_path),
+            "--signing-key-env",
+            "DP_RELEASE_CARD_SECRET",
+        ],
+        env=env,
+        stdin=subprocess.DEVNULL,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert verify.returncode == 0, verify.stderr
+    assert "receipt and release verified" in verify.stdout
 
 
 def test_cli_verify_release_digest_rejects_tampered_release(

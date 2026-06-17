@@ -25,10 +25,13 @@ from .receipt import (
     write_json,
 )
 
+DASH_VALUE_OPTIONS = {"--bounds", "--bins"}
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
-    args = parser.parse_args(argv)
+    parse_argv = sys.argv[1:] if argv is None else argv
+    args = parser.parse_args(_normalize_dash_value_options(parse_argv))
     try:
         if args.command == "histogram":
             return _cmd_histogram(args)
@@ -75,6 +78,22 @@ def build_parser() -> argparse.ArgumentParser:
         help="environment variable holding the HMAC signing secret",
     )
     return parser
+
+
+def _normalize_dash_value_options(argv: list[str]) -> list[str]:
+    normalized: list[str] = []
+    index = 0
+    while index < len(argv):
+        item = argv[index]
+        if item in DASH_VALUE_OPTIONS and index + 1 < len(argv):
+            value = argv[index + 1]
+            if value.startswith("-") and not value.startswith("--"):
+                normalized.append(f"{item}={value}")
+                index += 2
+                continue
+        normalized.append(item)
+        index += 1
+    return normalized
 
 
 def _cmd_histogram(args: argparse.Namespace) -> int:
