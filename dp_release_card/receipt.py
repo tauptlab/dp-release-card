@@ -60,6 +60,7 @@ def canonical_json_bytes(value: Any) -> bytes:
 
 
 def release_digest(release: dict) -> str:
+    validate_release_schema(release)
     return hashlib.sha256(canonical_json_bytes(release)).hexdigest()
 
 
@@ -136,6 +137,8 @@ def verify_release_digest(release: dict, receipt: dict) -> bool:
 
 
 def validate_release_policy_consistency(release: dict, policy: dict) -> None:
+    validate_release_schema(release)
+    validate_public_policy(policy)
     if release["query_type"] != policy["query_type"]:
         raise ReleaseCardError("release query_type does not match public_policy")
     if release["epsilon_spent"] != policy["epsilon"]:

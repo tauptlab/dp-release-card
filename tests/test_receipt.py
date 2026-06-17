@@ -11,6 +11,7 @@ from dp_release_card.receipt import (
     load_json,
     release_digest,
     secret_from_env,
+    validate_release_policy_consistency,
     verify_release_digest,
     verify_receipt,
     write_json,
@@ -148,6 +149,16 @@ def test_verify_release_digest_rejects_policy_mismatch(
 
     with pytest.raises(ReleaseCardError, match="epsilon_spent"):
         verify_release_digest(release, receipt)
+
+
+def test_release_digest_rejects_non_release_object() -> None:
+    with pytest.raises(ReleaseCardError, match="release must be an object"):
+        release_digest([])
+
+
+def test_release_policy_consistency_rejects_malformed_inputs() -> None:
+    with pytest.raises(ReleaseCardError, match="release query_type"):
+        validate_release_policy_consistency({}, sample_policy())
 
 
 def test_receipt_builder_rejects_policy_mismatch(
