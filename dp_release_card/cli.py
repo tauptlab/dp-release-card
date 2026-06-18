@@ -7,6 +7,7 @@ import tempfile
 from pathlib import Path
 from typing import Callable
 
+from . import __version__
 from .card import write_card
 from .csvio import read_numeric_column
 from .errors import ReleaseCardError
@@ -52,6 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="dp-release-card",
         description="Generate verifiable DP release cards for public-policy CSV histograms.",
     )
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     sub = parser.add_subparsers(dest="command")
 
     hist = sub.add_parser("histogram", help="release a strict finite-precision DP histogram")

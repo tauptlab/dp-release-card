@@ -6,6 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from dp_release_card import __version__
 from dp_release_card.cli import main
 from dp_release_card.errors import ReleaseCardError
 from dp_release_card.receipt import canonical_json_bytes
@@ -35,6 +36,15 @@ def test_cli_main_returns_success_for_help(capsys) -> None:
     captured = capsys.readouterr()
     assert code == 0
     assert "Generate verifiable DP release cards" in captured.out
+    assert captured.err == ""
+
+
+def test_cli_main_returns_success_for_version(capsys) -> None:
+    code = main(["--version"])
+
+    captured = capsys.readouterr()
+    assert code == 0
+    assert captured.out.strip() == f"dp-release-card {__version__}"
     assert captured.err == ""
 
 

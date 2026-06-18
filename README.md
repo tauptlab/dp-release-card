@@ -49,6 +49,12 @@ dp-release-card verify receipt.json \
   --signing-key-env DP_RELEASE_CARD_SECRET
 ```
 
+Check the installed version:
+
+```bash
+dp-release-card --version
+```
+
 PowerShell uses the same arguments with backticks and
 `$env:DP_RELEASE_CARD_SECRET="dev-secret-at-least-for-local-demo"`.
 
